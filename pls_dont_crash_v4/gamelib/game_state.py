@@ -645,3 +645,23 @@ class GameState:
                 if unit.damage_i + unit.damage_f > 0 and unit.player_index != player_index and self.game_map.distance_between_locations(location, location_unit) <= unit.attackRange:
                     attackers.append(unit)
         return attackers
+
+    def get_shielding(self, location, player_index=0):
+        if not player_index == 0 and not player_index == 1:
+            self._invalid_player_index(player_index)
+        if not self.game_map.in_arena_bounds(location):
+            self.warn("Location {} is not in the arena bounds.".format(location))
+
+        shield = 0
+
+        max_range = 0
+        for unit in self.config["unitInformation"]:
+            if unit.get('shieldRange', 0) >= max_range:
+                max_range = unit.get('shieldRange', 0)
+        possible_locations = self.game_map.get_locations_in_range(location, max_range)
+        for location_unit in possible_locations:
+            for unit in self.game_map[location_unit]:
+                if unit.player_index == player_index and self.game_map.distance_between_locations(location, location_unit) <= unit.shieldRange:
+                    shield += unit.shieldPerUnit
+
+        return shield
